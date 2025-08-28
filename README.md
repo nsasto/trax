@@ -1,8 +1,10 @@
 # Trax – Personal Finance ETL with Plaid
 
-Welcome! Trax is a little app I built to help me collect and consolidate my own financial data. If you find it useful, feel free to use or adapt it for your own needs.
+Trax is a little app I built to help me collect and consolidate my own financial data. If you find it useful, feel free to use or adapt it for your own needs.
 
 Trax lets you connect your UK/EU bank accounts using Plaid, pulls your transactions, and stores everything in a local SQLite database. It’s designed for privacy, extensibility, and tinkering.
+
+At the moment it's simply a data funnel for further analysis.
 
 ---
 
@@ -26,7 +28,7 @@ Trax lets you connect your UK/EU bank accounts using Plaid, pulls your transacti
 - Virtualenv (`python -m venv .venv`)
 - A Plaid account and API keys ([dashboard.plaid.com](https://dashboard.plaid.com))
 - For OAuth:
-  - A valid **HTTPS redirect URI** (use a self-signed cert for `https://localhost:5000/oauth-return`, or [ngrok](https://ngrok.com/))
+  - A valid **HTTPS redirect URI** (use a self-signed cert for `https://localhost:5000/oauth-return`, or [ngrok](https://ngrok.com/)). you can run `python cert.py` to create them for you.
 
 ---
 
@@ -139,7 +141,3 @@ You can also extend this to purge historical transactions from `finance.db` if y
 ## 📝 License
 
 MIT
-
-```
-
-```
