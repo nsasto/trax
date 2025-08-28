@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Plaid Link</title></head>
+  <body>
+    <button id="link-btn">Connect a bank</button>
+    <pre id="log"></pre>
+
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+    <script>
+      const API_BASE = "https://localhost:5000"; // now matches your HTTPS Flask server
+      const log = (...a) => (document.getElementById('log').textContent += a.join(' ') + '\n');
+
+      async function createLinkToken() {
+        const resp = await fetch(API_BASE + '/link_token/create', { method: 'POST' });
+        if (!resp.ok) {
+          log("Failed to create link_token", resp.status);
+          throw new Error("link_token error");
+        }
+        const data = await resp.json();
+        return data.link_token;
+      }
+
+      document.getElementById('link-btn').onclick = async () => {
+        try {
+          const token = await createLinkToken();
+          const handler = Plaid.create({
+            token,
+            onSuccess: async (public_token, metadata) => {
+              log('Got public_token:', public_token);
+              const resp = await fetch(API_BASE + '/item/public_token/exchange', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ public_token })
+              });
+              const data = await resp.json();
+              log('Stored item:', JSON.stringify(data, null, 2));
+              alert('Bank connected. You can run etl.py now.');
+            },
+            onExit: (err, metadata) => {
+              if (err) log('Link exit error:', err.error_message);
+              else log('Link closed.');
+            }
+          });
+          handler.open();
+        } catch (e) {
+          log('Error:', e.message || e);
+        }
+      };
+    </script>
+  </body>
+</html>

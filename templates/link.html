@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Plaid Link</title></head>
+  <body>
+    <button id="link-btn">Connect a bank</button>
+    <pre id="log" style="white-space:pre-wrap"></pre>
+
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+    <script>
+      const log = (...a) => (document.getElementById('log').textContent += a.join(' ') + '\n');
+
+      async function getLinkToken() {
+        // Reuse a token for this browser session if we already created one
+        let token = sessionStorage.getItem('link_token');
+        if (token) return token;
+
+        const resp = await fetch('/link_token/create', { method: 'POST' });
+        if (!resp.ok) {
+          const body = await resp.text();
+          throw new Error('link_token error ' + resp.status + ' ' + body);
+        }
+        const data = await resp.json();
+        token = data.link_token;
+        sessionStorage.setItem('link_token', token);
+        return token;
+      }
+
+      document.getElementById('link-btn').onclick = async () => {
+        try {
+          const token = await getLinkToken();
+
+          const handler = Plaid.create({
+            token,
+            onSuccess: async (public_token) => {
+              log('Got public_token:', public_token);
+              const r = await fetch('/item/public_token/exchange', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ public_token })
+              });
+              const data = await r.json();
+              log('Stored item:', JSON.stringify(data, null, 2));
+
+              // Success: clear the cached token (fresh token for future links)
+              sessionStorage.removeItem('link_token');
+
+              alert('Bank connected. You can run etl.py now.');
+            },
+            onExit: (err) => {
+              if (err) log('Link exit error:', err.error_message || JSON.stringify(err));
+              else log('Link closed.');
+            }
+          });
+
+          handler.open();
+        } catch (e) {
+          log('Error:', e && e.message || e);
+        }
+      };
+    </script>
+  </body>
+</html>

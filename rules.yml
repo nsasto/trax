@@ -1,0 +1,7 @@
+# Optional categorisation rules
+default_category: Uncategorized
+rules:
+  - description: "groceries"
+    category: "Food"
+  - description: "uber"
+    category: "Transport"

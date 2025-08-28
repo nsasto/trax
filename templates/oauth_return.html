@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Plaid OAuth Return</title></head>
+<body>
+  <pre id="log" style="white-space:pre-wrap"></pre>
+  <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+  <script>
+    const log = (...a) => (document.getElementById('log').textContent += a.join(' ') + '\n');
+    (async function() {
+      try {
+        // Try to reuse an existing token; if not available, create a fresh one (fallback)
+        let linkToken = sessionStorage.getItem('link_token');
+        if (!linkToken) {
+          const r = await fetch('/link_token/create', { method: 'POST' });
+          const d = await r.json(); linkToken = d.link_token;
+          sessionStorage.setItem('link_token', linkToken);
+        }
+
+        const handler = Plaid.create({
+          token: linkToken,
+          receivedRedirectUri: window.location.href,
+          onSuccess: async (public_token, metadata) => {
+            log('Got public_token:', public_token);
+            await fetch('/item/public_token/exchange', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                public_token,
+                institution: metadata && metadata.institution
+                  ? { institution_id: metadata.institution.id, name: metadata.institution.name }
+                  : null
+              })
+            });
+            sessionStorage.removeItem('link_token');
+            log('Bank connected. You can close this tab and run etl.py.');
+          },
+          onExit: (err) => { if (err) log('Exit error:', err.error_message); }
+        });
+        handler.open();
+      } catch (e) { log('Error:', e && e.message || e); }
+    })();
+  </script>
+</body>
+</html>

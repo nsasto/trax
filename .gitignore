@@ -1,0 +1,7 @@
+.env
+.venv
+# Ignore all SQLite database files
+*.sqlite
+*.db
+# Ignore all certs
+certs/
