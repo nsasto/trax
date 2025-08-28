@@ -37,7 +37,7 @@ At the moment it's simply a data funnel for further analysis.
 Clone the repo and install dependencies:
 
 ```bash
-git clone https://github.com/you/trax.git
+git clone https://github.com/nsasto/trax.git
 cd trax
 python -m venv .venv
 .venv\Scripts\activate   # PowerShell on Windows
