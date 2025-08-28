@@ -129,7 +129,7 @@ You can also extend this to purge historical transactions from `finance.db` if y
 
 ---
 
-## 🛣 Next Steps & Ideas
+## ToDo
 
 - Add a `/transactions/sync` endpoint to pull and classify transactions
 - Extend `finance.db` with `accounts` and `transactions` tables
